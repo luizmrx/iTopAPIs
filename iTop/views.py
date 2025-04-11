@@ -24,26 +24,31 @@ def enviar_imagem(request):
         print("Caminho não informado, provavelmente é uma requisição sem o POST")
         return Response(status=404)
     
-    response = requests.get(url_imagem, stream=True)
-    if response.status_code == 200 and "application/pdf" in response.headers.get("Content-Type", ""):
-        with open("conta.pdf", "wb") as f:
-            f.write(response.content)
+    try:
+        response = requests.get(url_imagem, stream=True)
 
-        print("PDF baixado com sucesso.")
-        url_imagem = "conta.pdf"
-        print(url_imagem)
-        resultado = iniciaArquivo(url_imagem)
-        print(resultado)
-        # Resetando o caminho da url para não haver conflitos
-        url_imagem = ''
-        return Response(resultado, status=200)
+        if response.status_code == 200 and "application/pdf" in response.headers.get("Content-Type", ""):
+            with open("conta.pdf", "wb") as f:
+                f.write(response.content)
 
-    else:
-        print("Erro ao baixar o PDF ou tipo de conteúdo inesperado.")
-        # Resetando o caminho da url para não haver conflitos
-        url_imagem = ''
+            print("PDF baixado com sucesso.")
+            url_imagem = "conta.pdf"
+            print(url_imagem)
+            resultado = iniciaArquivo(url_imagem)
+            print(resultado)
+            # Resetando o caminho da url para não haver conflitos
+            url_imagem = ''
+            return Response(resultado, status=200)
+
+        else:
+            print("Erro ao baixar o PDF ou tipo de conteúdo inesperado.")
+            # Resetando o caminho da url para não haver conflitos
+            url_imagem = ''
+            return Response({"status": "TALVEZ",
+                            "cod_lead": "15"})
+    except:
         return Response({"status": "TALVEZ",
-                         "cod_lead": "15"})
+                            "cod_lead": "15"})
 
     
 
