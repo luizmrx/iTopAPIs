@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from .aplicacao import iniciaArquivo
 import requests
 
-url_imagem = ""   
+# url_imagem = ""   
 
 def baixar_pdf(url_pdf, caminho_destino="arquivo.pdf"):
     response = requests.get(url_pdf)
@@ -13,11 +13,22 @@ def baixar_pdf(url_pdf, caminho_destino="arquivo.pdf"):
         f.write(response.content)
     return caminho_destino
 
-@api_view(['GET'])
+@api_view(['POST'])
 def enviar_imagem(request):
 
+    dados = request.data.get("url_arquivo")
+    cod_lead = request.data.get("cod_lead_tmp")
+    senha = request.data.get("senha")
+
+
+    # global url_imagem
+    url_imagem = "" 
+    url_imagem = dados
+    url_imagem_final = dados
+    print("Verificando url ", url_imagem)
+
     # Acessa a url informada no metodo post
-    global url_imagem
+    # global url_imagem
 
     # Tratamento do caso em que não temos o caminho do arquivo
     if url_imagem == '':
@@ -34,9 +45,10 @@ def enviar_imagem(request):
             print("PDF baixado com sucesso.")
             url_imagem = "conta.pdf"
             print(url_imagem)
-            resultado = iniciaArquivo(url_imagem)
-            print(resultado)
+            resultado = iniciaArquivo(url_imagem, cod_lead, senha, url_imagem_final)
+            # print(resultado)
             # Resetando o caminho da url para não haver conflitos
+            print("Acabou de verificar")
             url_imagem = ''
             return Response(resultado, status=200)
 
@@ -52,11 +64,12 @@ def enviar_imagem(request):
 
     
 
-@api_view(['POST'])
-def receber_imagem(request):
-    dados = request.data.get("url_arquivo")
-    global url_imagem
-    url_imagem = dados
-    return Response(dados, status=200)
+# @api_view(['POST'])
+# def receber_imagem(request):
+#     dados = request.data.get("url_arquivo")
+#     global url_imagem
+#     url_imagem = dados
+#     print("Verificando url ", url_imagem)
+#     return Response(dados, status=200)
 
 

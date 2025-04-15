@@ -17,10 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 # from iTop.views import api
-from iTop.views import enviar_imagem, receber_imagem
+from iTop.views import enviar_imagem
+# receber_imagem
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/envia', enviar_imagem),
-    path('api/receba', receber_imagem),
+    # path('api/receba', receber_imagem),
 ]

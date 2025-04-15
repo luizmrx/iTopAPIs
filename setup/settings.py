@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-jvnh4u(-r=$p0co)+-=4mer0lucv41zu0jx1ve&xo1&h%!eyrs
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["192.168.0.87", "localhost"]
+ALLOWED_HOSTS = ['193.186.4.201', 'localhost']
 
 
 # Application definition
@@ -76,8 +76,17 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'homologacao',
+        'USER': 'dbmasteruser',
+        'PASSWORD': '.FJhG(V5,o`ZLH(?f>_EzD%M%MM~qn6e',
+        'HOST': 'ls-614a111eaac842e7541a9fbcad321b32e9b26dff.csa9harzsbe6.us-east-1.rds.amazonaws.com',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
 
@@ -110,7 +119,7 @@ TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
