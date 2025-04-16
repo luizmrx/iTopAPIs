@@ -4,7 +4,7 @@ import pytesseract
 import re
 import pdfplumber
 import json
-from .models import Lead
+from .models import LeadTemp, LeadFinal
 from pypdf import PdfReader
 import os
 from django.core.files import File
@@ -156,7 +156,7 @@ def verificaConta(modalidadeTarifaria, subclasse, classe, historico, avisoCorte,
     
 
     #Aprovação:
-    if (modalidadeTarifaria) in grupoBAnalisar and verificaSubClasse(subclasse) != "baixa renda" and calculaMediaLiquida(historico, classe)>=100 and not verificarAvisoCorte(avisoCorte) and verificaSubClasse(subclasse) != "irrig. noturna" and not possuiGeracao(itensFatura):
+    if (modalidadeTarifaria) in grupoBAnalisar and (subclasse) != "Baixa Renda" and calculaMediaLiquida(historico, classe)>=100 and not verificarAvisoCorte(avisoCorte) and (subclasse) != "Irrigante Noturno" and not possuiGeracao(itensFatura):
         print("+++++++++++++++++++++++++")
         print("Aprovação automática") # OK
         print("+++++++++++++++++++++++++")
@@ -164,7 +164,7 @@ def verificaConta(modalidadeTarifaria, subclasse, classe, historico, avisoCorte,
         
 
     #Reprovação:
-    if verificaSubClasse(subclasse) == "baixa renda" or calculaMediaLiquida(historico, classe)<100 or (verificarAvisoCorte(avisoCorte) and calculaMediaLiquida(historico, classe)<500) or ((modalidadeTarifaria) in grupoAAnalisar and verificaSubClasse(subclasse) == "irrig. noturna"):
+    if (subclasse) == "Baixa Renda" or calculaMediaLiquida(historico, classe)<100 or (verificarAvisoCorte(avisoCorte) and calculaMediaLiquida(historico, classe)<500) or ((modalidadeTarifaria) in grupoAAnalisar and (subclasse) == "Irrigante Noturno"):
         print("+++++++++++++++++++++++++")
         print("Reprovação automática") # NAO CUMPRE
         print("+++++++++++++++++++++++++")
@@ -172,7 +172,7 @@ def verificaConta(modalidadeTarifaria, subclasse, classe, historico, avisoCorte,
         
 
     #Exceções:
-    if ((modalidadeTarifaria) in grupoBAnalisar and verificaSubClasse(subclasse) == "irrig. noturna") or (verificarAvisoCorte(avisoCorte) and calculaMediaLiquida(historico, classe) > 501) or possuiGeracao(itensFatura):
+    if ((modalidadeTarifaria) in grupoBAnalisar and (subclasse) == "Irrigante Noturno") or (verificarAvisoCorte(avisoCorte) and calculaMediaLiquida(historico, classe) > 501) or possuiGeracao(itensFatura):
         print("+++++++++++++++++++++++++")
         print("Caso de exceção") # TALVEZ
         print("+++++++++++++++++++++++++")
@@ -431,6 +431,29 @@ def processaArquivo(linhas, historico, padrao, padraoCurto, cod_lead, arquivo, c
     
     # verificaDetalhes(modalidadeTarifaria, subclasse, classe, historico, avisoCorte, itensFatura, nome, pessoaFisica, enderecoT, numeroCliente, numeroInstalacao, rua, numero, complemento, bairro, cep, cidade, estado, classeVerificacaoConta, ehCEMIG)
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    # print(nome)
+    # print(pessoaFisica)
+    # print(ehCEMIG)
+    # print(modalidadeTarifaria)
+    # print(classeVerificacaoConta)
+    # print(subclasse)
+    # print(classe)
+    # print(rua)
+    # print(numero)
+    # print(complemento)
+    # print(bairro)
+    # print(cep)
+    # print(cidade)
+    # print(estado)
+    # print(numeroCliente)
+    # print(numeroInstalacao)
+    # print(historico)
+    # print(cod_lead)
+    # print(avisoCorte)
+    # print(itensFatura)
+    # print(arquivo)
+    # print(conta_energia_senha)
+    # print(url_imagem_final)
     enviaDadosDB(nome, pessoaFisica, ehCEMIG, modalidadeTarifaria, classeVerificacaoConta, subclasse, classe, rua, numero, complemento, bairro, cep, cidade, estado, numeroCliente, numeroInstalacao, historico, cod_lead, avisoCorte, itensFatura, arquivo, conta_energia_senha, url_imagem_final)
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     # print("Verificando o historio para a Evernetz ", historicoEvernet(historico))
@@ -554,8 +577,43 @@ def enviaDadosDB(nome, pessoaFisica, ehCEMIG, modalidadeTarifaria, classeVerific
     # url_imagem = str(numeroInstalacao) + str(cod_lead)
     url_imagem = url_imagem_final
 
+    # Transformação do status para a lead_temp
+    statusTemp = 0
+    if status == "16":
+        statusTemp = "1" # Cumpre
+    elif status == "15":
+        statusTemp = "3" # Talvez
+    if statusTotal['status'] == "NAO CUMPRE":
+        statusTemp = "2" # Não cumpre
+    print("status da temp ", statusTemp)
+    print("status da final ", status)
 
-    lead = Lead.objects.create(
+
+    lead = LeadTemp.objects.create(
+        nome=nome,
+        cep=cep,
+        status=statusTemp,
+        distribuidora=ehCEMIG,
+        kwh_medio=mediaBrutaFinal,
+        kwh_media_liquida=mediaLiquidaFinal,
+        kwh_historico_consumo=historicoFinal,
+        classe=codClasse,
+        grupo_tarifario=codModTarifaria,
+        endereco=rua,
+        numero=numero,
+        complemento=complemento,
+        bairro=bairro,
+        cidade=cidade,
+        uf=estado,
+        numero_uc=numeroInstalacao,
+        numero_cliente=numeroCliente,
+        tipo_pessoa = pessoaFisica,
+        cod_lead=cod_lead,
+        conta_energia= url_imagem,
+        conta_energia_senha = conta_energia_senha
+    )
+
+    leadFinal = LeadFinal.objects.create(
         nome=nome,
         cep=cep,
         status=status,
@@ -574,7 +632,6 @@ def enviaDadosDB(nome, pessoaFisica, ehCEMIG, modalidadeTarifaria, classeVerific
         numero_uc=numeroInstalacao,
         numero_cliente=numeroCliente,
         tipo_pessoa = pessoaFisica,
-        cod_lead=cod_lead,
         conta_energia= url_imagem,
         conta_energia_senha = conta_energia_senha
     )
